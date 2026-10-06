@@ -16,7 +16,7 @@ export function report({ code, json, err, dir = '.', fail = false }) {
     if (code === 0) ({ found } = JSON.parse(json));
   } catch {
     code = -1; // unparseable output is a broken check, not a finding
-    err = `could not read the CLI output. ${err}`;
+    err = `could not read the CLI output (starts: ${JSON.stringify(json.slice(0, 120))}). ${err}`;
   }
   if (code !== 0) {
     return {
