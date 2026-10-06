@@ -1,0 +1,27 @@
+name: 'Last Call deprecation check'
+description: 'Flags dependencies, runtimes, images and APIs in your repo that have an announced shutdown or end-of-life date.'
+author: 'Last Call (lastcall.dev)'
+branding:
+  icon: 'clock'
+  color: 'orange'
+inputs:
+  path:
+    description: 'Directory to check, relative to the workspace.'
+    default: '.'
+  fail:
+    description: 'Fail the job when something is found. Off by default: findings show as annotations and a job summary.'
+    default: 'false'
+runs:
+  using: 'composite'
+  steps:
+    # The checker is the `lastcall.dev` npm CLI.
+    # `@0.1` takes its patch releases; a minor bump may change the --json shape,
+    # so moving to it is a deliberate release of this action.
+    - shell: bash
+      run: |
+        code=0
+        npx --yes lastcall.dev@0.1 check "$INPUT_PATH" --json > "$RUNNER_TEMP/lastcall.json" 2> "$RUNNER_TEMP/lastcall.err" || code=$?
+        node "$GITHUB_ACTION_PATH/check.mjs" "$code" "$RUNNER_TEMP/lastcall.json" "$RUNNER_TEMP/lastcall.err"
+      env:
+        INPUT_PATH: ${{ inputs.path }}
+        INPUT_FAIL: ${{ inputs.fail }}
